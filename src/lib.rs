@@ -12,23 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #[macro_use]
 extern crate wascc_codec as codec;
 
-
 use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
 use codec::core::CapabilityConfiguration;
-use codec::logging::{OP_LOG,WriteLogRequest};
+use codec::logging::{WriteLogRequest, OP_LOG};
 use wascc_codec::core::OP_CONFIGURE;
 use wascc_codec::core::OP_REMOVE_ACTOR;
-use wascc_codec::{deserialize};
-
-
+use wascc_codec::deserialize;
 
 #[macro_use]
 extern crate log;
-
 
 use std::error::Error;
 use std::sync::RwLock;
@@ -45,8 +40,8 @@ impl Default for LoggingProvider {
     fn default() -> Self {
         env_logger::init();
 
-        LoggingProvider { 
-            dispatcher: RwLock::new(Box::new(NullDispatcher::new())),           
+        LoggingProvider {
+            dispatcher: RwLock::new(Box::new(NullDispatcher::new())),
         }
     }
 }
@@ -63,7 +58,7 @@ impl LoggingProvider {
         let _config = config.into();
         info!("configuring {}", CAPABILITY_ID);
         Ok(vec![])
-    }    
+    }
 }
 
 impl CapabilityProvider for LoggingProvider {
@@ -81,7 +76,7 @@ impl CapabilityProvider for LoggingProvider {
     }
 
     fn name(&self) -> &'static str {
-        "wascc Logging Provider" 
+        "wascc Logging Provider"
     }
 
     // Invoked by host runtime to allow an actor to make use of the capability
@@ -91,12 +86,12 @@ impl CapabilityProvider for LoggingProvider {
         // only accept it from the host runtime
         if op == OP_CONFIGURE && actor == "system" {
             let cfgvals = deserialize::<CapabilityConfiguration>(msg)?;
-            // setup stuff here 
+            // setup stuff here
             match self.configure(cfgvals) {
                 Ok(_) => Ok(vec![]),
-                Err(e) => Err(e)
+                Err(e) => Err(e),
             }
-        } else if op == OP_REMOVE_ACTOR &&  actor == "system" {
+        } else if op == OP_REMOVE_ACTOR && actor == "system" {
             let cfgvals = deserialize::<CapabilityConfiguration>(msg)?;
             info!("Removing actor configuration for {}", cfgvals.module);
             // tear down stuff here
@@ -104,11 +99,11 @@ impl CapabilityProvider for LoggingProvider {
         } else if op == OP_LOG {
             let logmsg = deserialize::<WriteLogRequest>(msg)?;
             match logmsg.level {
-                1 => error!("[{}] {}",actor, logmsg.body),
+                1 => error!("[{}] {}", actor, logmsg.body),
                 2 => warn!("[{}] {}", actor, logmsg.body),
-                3 => info!("[{}] {}",actor, logmsg.body),
-                4 => debug!("[{}] {}",actor, logmsg.body),
-                5 => trace!("[{}] {}",actor, logmsg.body),
+                3 => info!("[{}] {}", actor, logmsg.body),
+                4 => debug!("[{}] {}", actor, logmsg.body),
+                5 => trace!("[{}] {}", actor, logmsg.body),
                 _ => error!("Unknown log level: {}", logmsg.level),
             }
             Ok(vec![])
