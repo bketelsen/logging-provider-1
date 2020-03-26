@@ -90,9 +90,11 @@ impl CapabilityProvider for LoggingProvider {
         // TIP: do not allow individual modules to attempt to send configuration,
         // only accept it from the host runtime
         if op == OP_CONFIGURE && actor == "system" {
-            let cfgvals = deserialize::<CapabilityConfiguration>(msg)?;
-            // setup stuff here
-            self.configure(cfgvals).map(|_| vec![])
+            // if there were configuration values, we'd call
+            // self.configure() here:
+            //     self.configure(cfgvals).map(|_| vec![])
+
+            Ok(vec![])
         } else if op == OP_REMOVE_ACTOR && actor == "system" {
             let cfg_vals = deserialize::<CapabilityConfiguration>(msg)?;
             info!("Removing actor configuration for {}", cfg_vals.module);
