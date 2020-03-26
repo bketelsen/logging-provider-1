@@ -16,11 +16,11 @@
 extern crate wascc_codec as codec;
 
 use codec::capabilities::{CapabilityProvider, Dispatcher, NullDispatcher};
-use codec::core::CapabilityConfiguration;
-use codec::logging::{WriteLogRequest, OP_LOG};
-use wascc_codec::core::OP_CONFIGURE;
-use wascc_codec::core::OP_REMOVE_ACTOR;
-use wascc_codec::deserialize;
+use codec::core::{CapabilityConfiguration, OP_CONFIGURE, OP_REMOVE_ACTOR};
+use codec::{
+    deserialize,
+    logging::{WriteLogRequest, OP_LOG},
+};
 
 #[macro_use]
 extern crate log;
