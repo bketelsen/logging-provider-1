@@ -30,7 +30,13 @@ use std::sync::RwLock;
 
 capability_provider!(LoggingProvider, LoggingProvider::new);
 
-const CAPABILITY_ID: &str = "wascc:logging"; // TODO: change this to an appropriate capability ID
+const CAPABILITY_ID: &str = "wascc:logging";
+
+const ERROR: usize = 1;
+const WARN: usize = 2;
+const INFO: usize = 3;
+const DEBUG: usize = 4;
+const TRACE: usize = 5;
 
 pub struct LoggingProvider {
     dispatcher: RwLock<Box<dyn Dispatcher>>,
@@ -53,10 +59,9 @@ impl LoggingProvider {
 
     fn configure(
         &self,
-        config: impl Into<CapabilityConfiguration>,
+        _config: impl Into<CapabilityConfiguration>,
     ) -> Result<Vec<u8>, Box<dyn Error>> {
-        let _config = config.into();
-        info!("configuring {}", CAPABILITY_ID);
+        trace!("configuring {}", CAPABILITY_ID);
         Ok(vec![])
     }
 }
@@ -76,7 +81,7 @@ impl CapabilityProvider for LoggingProvider {
     }
 
     fn name(&self) -> &'static str {
-        "wascc Logging Provider"
+        "waSCC Logging Provider"
     }
 
     // Invoked by host runtime to allow an actor to make use of the capability
@@ -87,24 +92,21 @@ impl CapabilityProvider for LoggingProvider {
         if op == OP_CONFIGURE && actor == "system" {
             let cfgvals = deserialize::<CapabilityConfiguration>(msg)?;
             // setup stuff here
-            match self.configure(cfgvals) {
-                Ok(_) => Ok(vec![]),
-                Err(e) => Err(e),
-            }
+            self.configure(cfgvals).map(|_| vec![])
         } else if op == OP_REMOVE_ACTOR && actor == "system" {
-            let cfgvals = deserialize::<CapabilityConfiguration>(msg)?;
-            info!("Removing actor configuration for {}", cfgvals.module);
+            let cfg_vals = deserialize::<CapabilityConfiguration>(msg)?;
+            info!("Removing actor configuration for {}", cfg_vals.module);
             // tear down stuff here
             Ok(vec![])
         } else if op == OP_LOG {
-            let logmsg = deserialize::<WriteLogRequest>(msg)?;
-            match logmsg.level {
-                1 => error!("[{}] {}", actor, logmsg.body),
-                2 => warn!("[{}] {}", actor, logmsg.body),
-                3 => info!("[{}] {}", actor, logmsg.body),
-                4 => debug!("[{}] {}", actor, logmsg.body),
-                5 => trace!("[{}] {}", actor, logmsg.body),
-                _ => error!("Unknown log level: {}", logmsg.level),
+            let log_msg = deserialize::<WriteLogRequest>(msg)?;
+            match log_msg.level {
+                ERROR => error!("[{}] {}", actor, log_msg.body),
+                WARN => warn!("[{}] {}", actor, log_msg.body),
+                INFO => info!("[{}] {}", actor, log_msg.body),
+                DEBUG => debug!("[{}] {}", actor, log_msg.body),
+                TRACE => trace!("[{}] {}", actor, log_msg.body),
+                _ => error!("Unknown log level: {}", log_msg.level),
             }
             Ok(vec![])
         } else {
